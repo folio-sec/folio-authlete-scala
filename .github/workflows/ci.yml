@@ -1,0 +1,21 @@
+name: CI
+
+on: [ push ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: zulu
+      - name: GPG version
+        run: gpg --version
+      - name: Decrypto IT data
+        env:
+          IT_GPG_PASSPHRASE: ${{ secrets.IT_GPG_PASSPHRASE }}
+        run: ./.github/scripts/decrypt_secret.sh
+      - name: Build
+        run: sbt -v +test
