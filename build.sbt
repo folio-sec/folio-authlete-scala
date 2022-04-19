@@ -8,7 +8,7 @@ val scalaTestVersion = "3.2.10"
 lazy val baseSettings = Seq(
   scalaVersion := "2.13.8",
   organization := "com.folio",
-  version := "0.1.0-SNAPSHOT",
+  version := "1.0.0",
   scalacOptions := Seq(
     "-Xfatal-warnings",
     "-deprecation",
