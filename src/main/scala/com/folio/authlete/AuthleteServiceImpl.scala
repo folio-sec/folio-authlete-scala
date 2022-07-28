@@ -31,6 +31,9 @@ import com.authlete.common.dto.{
   TokenRequest,
   TokenResponse
 }
+import com.folio.authlete.util.Show
+import com.folio.authlete.util.Show.ShowOps
+import com.folio.authlete.util.ShowAuthleteDto._
 import org.slf4j.LoggerFactory
 import sttp.client3.{asString, basicRequest, Response, SttpBackend}
 import sttp.model.{MediaType, Uri}
@@ -51,141 +54,137 @@ final private[authlete] class AuthleteServiceImpl[F[_]](
   private val baseUri = Uri("https", config.host, config.port)
 
   override def clientGet(clientId: String): F[Response[Either[ApiResponse, Client]]] = {
-    logger.info(s"Authlete Request /client/get; ClientId: `$clientId`")
+    val api = "/client/get"
+    logRequest(api, "ClientId" -> clientId)
     baseRequest
       .get(baseUri.withPath("api", "client", "get", clientId))
       .mapResponse {
         case Right(value) =>
           val body = json.parseJson(value, classOf[Client])
-          logger.info(s"Authlete Response /client/get; ClientId: `${body.getClientId}`")
+          logResponse(api, body)
           Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /client/get; {}", body)
-          Left(body)
+        case Left(value) => handleError(api, value)
       }
       .send(backend)
   }
 
   override def authorization(request: AuthorizationRequest): F[Response[Either[ApiResponse, AuthorizationResponse]]] = {
-    logger.info(s"Authlete Request /auth/authorization")
+    val api = "/auth/authorization"
+    logRequest(api, request)
     baseRequest
       .post(baseUri.withPath("api", "auth", "authorization"))
       .body(json.renderJson(request))
       .mapResponse {
         case Right(value) =>
           val body = json.parseJson(value, classOf[AuthorizationResponse])
-          logger.info(
-            s"Authlete Response /auth/authorization; Action: `${body.getAction}`, ResultMessage: `${body.getResultMessage}"
-          )
+          logResponse(api, body)
           Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /auth/authorization; {}", body)
-          Left(body)
+        case Left(value) => handleError(api, value)
       }
       .send(backend)
   }
 
   override def authorizationIssue(request: AuthorizationIssueRequest)
       : F[Response[Either[ApiResponse, AuthorizationIssueResponse]]] = {
-    logger.info(s"Authlete Request /auth/authorization/issue")
+    val api = "/auth/authorization/issue"
+    logRequest(api, request)
     baseRequest
       .post(baseUri.withPath("api", "auth", "authorization", "issue"))
       .body(json.renderJson(request))
       .mapResponse {
         case Right(value) =>
           val body = json.parseJson(value, classOf[AuthorizationIssueResponse])
-          logger.info(
-            s"Authlete Response /auth/authorization/issue; Action: `${body.getAction}`, ResultMessage: `${body.getResultMessage}`"
-          )
+          logResponse(api, body)
           Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /auth/authorization/issue; {}", body)
-          Left(body)
+        case Left(value) => handleError(api, value)
       }
       .send(backend)
   }
 
   override def authorizationFail(request: AuthorizationFailRequest)
       : F[Response[Either[ApiResponse, AuthorizationFailResponse]]] = {
-    logger.info(s"Authlete Request /auth/authorization/fail")
+    val api = "/auth/authorization/fail"
+    logRequest(api, request)
     baseRequest
       .post(baseUri.withPath("api", "auth", "authorization", "fail"))
       .body(json.renderJson(request))
       .mapResponse {
         case Right(value) =>
           val body = json.parseJson(value, classOf[AuthorizationFailResponse])
-          logger.info(
-            s"Authlete Response /auth/authorization/fail; Action: `${body.getAction}`, ResultMessage: `${body.getResultMessage}`"
-          )
+          logResponse(api, body)
           Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /auth/authorization/fail; {}", body)
-          Left(body)
+        case Left(value) => handleError(api, value)
       }
       .send(backend)
   }
 
   override def token(request: TokenRequest): F[Response[Either[ApiResponse, TokenResponse]]] = {
-    logger.info(s"Authlete Request /auth/token; ClientId: `${request.getClientId}`")
+    val api = "/auth/token"
+    logRequest(api, request)
     baseRequest
       .post(baseUri.withPath("api", "auth", "token"))
       .body(json.renderJson(request))
       .mapResponse {
         case Right(value) =>
           val body = json.parseJson(value, classOf[TokenResponse])
-          logger.info(
-            s"Authlete Response /auth/token; Action: `${body.getAction}`, ResultMessage: `${body.getResultMessage}`"
-          )
+          logResponse(api, body)
           Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /auth/token; {}", body)
-          Left(body)
+        case Left(value) => handleError(api, value)
       }
       .send(backend)
   }
 
   override def introspection(request: IntrospectionRequest): F[Response[Either[ApiResponse, IntrospectionResponse]]] = {
-    logger.info(s"Authlete Request /auth/introspection")
+    val api = "/auth/introspection"
+    logRequest(api, request)
     baseRequest
       .post(baseUri.withPath("api", "auth", "introspection"))
       .body(json.renderJson(request))
       .mapResponse {
         case Right(value) =>
           val body = json.parseJson(value, classOf[IntrospectionResponse])
-          logger.info(
-            s"Authlete Response /auth/introspection; Action: `${body.getAction}`, ResultMessage: `${body.getResultMessage}`"
-          )
+          logResponse(api, body)
           Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /auth/introspection; {}", body)
-          Left(body)
+        case Left(value) => handleError(api, value)
       }
       .send(backend)
   }
 
   override def revocation(request: RevocationRequest): F[Response[Either[ApiResponse, RevocationResponse]]] = {
-    logger.info(s"Authlete Request /auth/revocation; ClientId: `${request.getClientId}`")
+    post(request, classOf[RevocationResponse], "auth", "revocation")
+  }
+
+  private def post[A: Show, B: Show](request: A, cls: Class[B], path: String*): F[Response[Either[ApiResponse, B]]] = {
+    val apiName = path.mkString("/", "/", "")
+    logRequest(apiName, request)
     baseRequest
-      .post(baseUri.withPath("api", "auth", "revocation"))
+      // Authlete endpoint begins with path `/api`
+      .post(baseUri.withPath("api", path: _*))
       .body(json.renderJson(request))
       .mapResponse {
-        case Right(value) =>
-          val body = json.parseJson(value, classOf[RevocationResponse])
-          logger.info(
-            s"Authlete Response /auth/revocation; Action: `${body.getAction}`, ResultMessage: `${body.getResultMessage}`"
-          )
-          Right(body)
-        case Left(value) =>
-          val body = json.parseJson(value, classOf[ApiResponse])
-          logger.info("Authlete Response /auth/revocation; {}", body)
-          Left(body)
+        case Right(value) => handleResponse[B](apiName, value, cls)
+        case Left(value)  => handleError(apiName, value)
       }
       .send(backend)
+  }
+
+  private def handleResponse[A: Show](api: String, bodyStr: String, cls: Class[A]): Right[Nothing, A] = {
+    val body = json.parseJson(bodyStr, cls)
+    logResponse(api, body)
+    Right(body)
+  }
+
+  private def handleError(api: String, bodyStr: String): Left[ApiResponse, Nothing] = {
+    val body = json.parseJson(bodyStr, classOf[ApiResponse])
+    logResponse(api, body)
+    Left(body)
+  }
+
+  private def logRequest[A: Show](api: String, body: A): Unit = {
+    logger.info(s"Authlete Request {}; {}", api, body.show)
+  }
+
+  private def logResponse[A: Show](api: String, body: A): Unit = {
+    logger.info(s"Authlete Response {}; {}", api, body.show)
   }
 }

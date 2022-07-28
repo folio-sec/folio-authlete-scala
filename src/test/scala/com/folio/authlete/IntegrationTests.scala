@@ -56,10 +56,6 @@ class IntegrationTests extends AsyncFunSpec with BeforeAndAfterAll {
   private lazy val backend = AsyncHttpClientFutureBackend()
   private lazy val service = AuthleteService(backend, config)
 
-  override def beforeAll(): Unit = {
-    println(testData)
-  }
-
   describe("clientGet") {
     it("responds successfully") {
       for {
